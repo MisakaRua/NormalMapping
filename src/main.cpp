@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 
     Shader shader("shader/normal_mapping.vert", "shader/normal_mapping.frag");
 
-    Camera camera({ 2.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f });
+    Camera camera({ 3.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 0.0f });
 
     Texture color("res/brickwall.jpg");
     Texture normalMap("res/brickwall_normal.jpg");
@@ -61,68 +61,91 @@ int main(int argc, char** argv)
             glm::vec3 bitangent;
         };
 
-        // positions
-        glm::vec3 pos1(-1.0, 1.0, 0.0);
-        glm::vec3 pos2(-1.0, -1.0, 0.0);
-        glm::vec3 pos3(1.0, -1.0, 0.0);
-        glm::vec3 pos4(1.0, 1.0, 0.0);
-        // texture coordinates
-        glm::vec2 uv1(0.0, 1.0);
-        glm::vec2 uv2(0.0, 0.0);
-        glm::vec2 uv3(1.0, 0.0);
-        glm::vec2 uv4(1.0, 1.0);
-        // normal vector
-        glm::vec3 nm(0.0, 0.0, 1.0);
-
-        // calculate tangent/bitangent vectors of both triangles
-        glm::vec3 tangent1, bitangent1;
-        glm::vec3 tangent2, bitangent2;
-        // - triangle 1
-        glm::vec3 edge1 = pos2 - pos1;
-        glm::vec3 edge2 = pos3 - pos1;
-        glm::vec2 deltaUV1 = uv2 - uv1;
-        glm::vec2 deltaUV2 = uv3 - uv1;
-
-        GLfloat f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-        tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-        tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-        tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-        tangent1 = glm::normalize(tangent1);
-
-        bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-        bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-        bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-        bitangent1 = glm::normalize(bitangent1);
-
-        // - triangle 2
-        edge1 = pos3 - pos1;
-        edge2 = pos4 - pos1;
-        deltaUV1 = uv3 - uv1;
-        deltaUV2 = uv4 - uv1;
-
-        f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-        tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-        tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-        tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-        tangent2 = glm::normalize(tangent2);
-
-
-        bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-        bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-        bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-        bitangent2 = glm::normalize(bitangent2);
 
         Vertex vertices[] =
         {
-            { pos1, nm, uv1, tangent1, tangent1 },
-            { pos2, nm, uv2, tangent1, tangent1 },
-            { pos3, nm, uv3, tangent1, tangent1 },
-            { pos1, nm, uv1, tangent2, tangent2 },
-            { pos3, nm, uv3, tangent2, tangent2 },
-            { pos4, nm, uv4, tangent2, tangent2 },
+            { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            
+            { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+
+            { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+
+            { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+
+            { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            
+            { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            
+            { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+
+            { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
+            { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            
+            { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
+            { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
+            { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} }
         };
+
+        for (int i = 0; i < sizeof(vertices) / (3 * sizeof(Vertex)); ++i)
+        {            
+            glm::vec3 edge1 = vertices[i * 3 + 1].position - vertices[i * 3].position;
+            glm::vec3 edge2 = vertices[i * 3 + 2].position - vertices[i * 3].position;
+
+            glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+            vertices[i * 3].normal = normal;
+            vertices[i * 3 + 1].normal = normal;
+            vertices[i * 3 + 2].normal = normal;
+
+            glm::vec2 deltaUV1 = vertices[i * 3 + 1].texCoord - vertices[i * 3].texCoord;
+            glm::vec2 deltaUV2 = vertices[i * 3 + 2].texCoord - vertices[i * 3].texCoord;
+
+            float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+            glm::vec3 tangent;
+            glm::vec3 bitangent;
+
+            tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+            tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+            tangent = glm::normalize(tangent);
+            vertices[i * 3].tangent = tangent;
+            vertices[i * 3 + 1].tangent = tangent;
+            vertices[i * 3 + 2].tangent = tangent;
+
+            bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+            bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+            bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+            bitangent = glm::normalize(bitangent);
+            vertices[i * 3].bitangent = bitangent;
+            vertices[i * 3 + 1].bitangent = bitangent;
+            vertices[i * 3 + 2].bitangent = bitangent;
+        }
 
 
         glGenVertexArrays(1, &plane);
@@ -145,11 +168,14 @@ int main(int argc, char** argv)
     }
 
 
-    double lastTime = glfwGetTime();
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     while (!glfwWindowShouldClose(window))
     {
-        double newTime = glfwGetTime();
-        double dt = (newTime - lastTime);
+        float timeRadians = glm::radians(glfwGetTime());
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);        
@@ -169,15 +195,16 @@ int main(int argc, char** argv)
             glBindTexture(GL_TEXTURE_2D, normalMap.texture);
             shader.setValue("normalMap", 1);
 
+            lightPos = { timeRadians * 17.0f, timeRadians * 21.0f, timeRadians * 37.0f };
             shader.setValue("lightPos", lightPos);
 
             glm::mat4 model;
-            model = glm::rotate(glm::mat4(1.0f), (float)glm::radians(glfwGetTime() * 30.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f)));
+            model = glm::rotate(glm::mat4(1.0f), timeRadians * 30.0f, glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f)));
             model = glm::rotate(model, (float)glm::radians(glfwGetTime() * 50.0f), glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
             shader.setValue("model", model);
 
             glBindVertexArray(plane);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
 
