@@ -32,5 +32,5 @@ void main()
     mat3 TBN = transpose(mat3(T, B, N));  
     TBNLightPos = TBN * lightPos;
     TBNViewPos  = TBN * viewPos;
-    TBNFragPos  = TBN * vs_out.FragPos;
+    TBNFragPos  = TBN * FragPos;
 }
