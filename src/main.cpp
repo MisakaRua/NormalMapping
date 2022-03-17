@@ -13,6 +13,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture.h"
@@ -30,13 +34,28 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    window = glfwCreateWindow(wndWidth, wndHeight, "Compute Shader", nullptr, nullptr);
+    window = glfwCreateWindow(wndWidth, wndHeight, "Normal Mapping", nullptr, nullptr);
     assert(window);
     glfwMakeContextCurrent(window);
 
     assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
 
     glViewport(0, 0, wndWidth, wndHeight);
+
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 430");
 
 
     glm::vec3 lightPos{ 0.5f, 1.0f, 0.3f };
@@ -47,10 +66,11 @@ int main(int argc, char** argv)
 
     Texture color("res/brickwall.jpg");
     Texture normalMap("res/brickwall_normal.jpg");
+    Texture displancementlMap("res/bricks_disp.jpg");
 
 
-    uint32_t plane = 0;
-    uint32_t vbo;
+    uint32_t box = 0;
+    uint32_t vbo = 0;
     {
         struct Vertex
         {
@@ -67,7 +87,7 @@ int main(int argc, char** argv)
             { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
-            
+
             { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
@@ -75,7 +95,7 @@ int main(int argc, char** argv)
             { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
-            
+
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
@@ -83,7 +103,7 @@ int main(int argc, char** argv)
             { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
-            
+
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
@@ -91,7 +111,7 @@ int main(int argc, char** argv)
             { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
-            
+
             { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
@@ -99,7 +119,7 @@ int main(int argc, char** argv)
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f, -1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
-            
+
             { glm::vec3{ 1.0f, -1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f, -1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
@@ -107,14 +127,14 @@ int main(int argc, char** argv)
             { glm::vec3{ 1.0f,  1.0f, -1.0f}, {}, glm::vec2{1.0f, 1.0f}, {}, {} },
             { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
-            
+
             { glm::vec3{-1.0f,  1.0f,  1.0f}, {}, glm::vec2{0.0f, 0.0f}, {}, {} },
             { glm::vec3{ 1.0f,  1.0f,  1.0f}, {}, glm::vec2{1.0f, 0.0f}, {}, {} },
             { glm::vec3{-1.0f,  1.0f, -1.0f}, {}, glm::vec2{0.0f, 1.0f}, {}, {} }
         };
 
         for (int i = 0; i < sizeof(vertices) / (3 * sizeof(Vertex)); ++i)
-        {            
+        {
             glm::vec3 edge1 = vertices[i * 3 + 1].position - vertices[i * 3].position;
             glm::vec3 edge2 = vertices[i * 3 + 2].position - vertices[i * 3].position;
 
@@ -148,8 +168,8 @@ int main(int argc, char** argv)
         }
 
 
-        glGenVertexArrays(1, &plane);
-        glBindVertexArray(plane);
+        glGenVertexArrays(1, &box);
+        glBindVertexArray(box);
 
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -173,44 +193,80 @@ int main(int argc, char** argv)
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    int isNormalMapping = 1;
+    float heightScale = 0.1f;
+
     while (!glfwWindowShouldClose(window))
     {
         float timeRadians = glm::radians(glfwGetTime());
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shader.bind();
+
+        shader.setValue("proj", camera.getProj());
+        shader.setValue("view", camera.getView());
+        shader.setValue("viewPos", camera.pos);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, color.texture);
+        shader.setValue("DiffuseMap", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normalMap.texture);
+        shader.setValue("NormalMap", 1);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, displancementlMap.texture);
+        shader.setValue("DepthMap", 2);
+
+        lightPos = { timeRadians * 17.0f, timeRadians * 21.0f, timeRadians * 37.0f };
+        shader.setValue("lightPos", lightPos);
+
+        glm::mat4 model;
+        model = glm::rotate(glm::mat4(1.0f), timeRadians * 30.0f, glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f)));
+        model = glm::rotate(model, (float)glm::radians(glfwGetTime() * 50.0f), glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+        shader.setValue("model", model);
+
+        shader.setValue("isNormalMapping", isNormalMapping);
+        shader.setValue("height_scale", heightScale);
+
+        glBindVertexArray(box);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
         {
-            shader.bind();
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-            shader.setValue("proj", camera.getProj());
-            shader.setValue("view", camera.getView());
-            shader.setValue("viewPos", camera.pos);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, color.texture);
-            shader.setValue("diffuseMap", 0);
+            ImGui::Begin("Mapping Algorithm");
+            if (ImGui::Button("Switch Mapping Algorithm"))
+            {
+                isNormalMapping = 1 - isNormalMapping;
+                ImGui::Text(isNormalMapping ? "Current: Normal Mapping" : "Current: Parallax Mapping");
+            }
 
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, normalMap.texture);
-            shader.setValue("normalMap", 1);
+            ImGui::SliderFloat("Height Scale", &heightScale, 0.001f, 0.2f);
+            ImGui::End();
 
-            lightPos = { timeRadians * 17.0f, timeRadians * 21.0f, timeRadians * 37.0f };
-            shader.setValue("lightPos", lightPos);
 
-            glm::mat4 model;
-            model = glm::rotate(glm::mat4(1.0f), timeRadians * 30.0f, glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f)));
-            model = glm::rotate(model, (float)glm::radians(glfwGetTime() * 50.0f), glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
-            shader.setValue("model", model);
-
-            glBindVertexArray(plane);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            // Rendering
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &box);
 
 
     glfwDestroyWindow(window);

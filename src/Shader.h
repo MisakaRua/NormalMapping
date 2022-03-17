@@ -119,6 +119,10 @@ template<> void Shader::setValue(const std::string& name, glm::ivec4 val) const
 {
 	glUniform4i(glGetUniformLocation(program, name.c_str()), val.x, val.y, val.z, val.w);
 }
+template<> void Shader::setValue(const std::string& name, bool val) const
+{
+	glUniform1i(glGetUniformLocation(program, name.c_str()), val);
+}
 
 template<> void Shader::setValue(const std::string& name, float val) const
 {
